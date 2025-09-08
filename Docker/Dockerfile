@@ -1,14 +1,24 @@
+# Imagem base
 FROM python:3.11-slim
 
-RUN pip3 install requirements.txt && \
-    groupadd -r demouser && useradd -r -g demouser demouser && \
-    mkdir /src && \
-    chown -R demouser:demouser /src
+# Copiar ficheiros e instalar dependências
+WORKDIR /src
+COPY requirements.txt .
+RUN pip install -r requirements.txt
 
+# Copiar aplicação
+COPY app.py .
+
+# Criar utilizador para segurança
+RUN groupadd -r demouser && useradd -r -g demouser demouser
+RUN chown -R demouser:demouser /src
 USER demouser
 
-WORKDIR /src
+# Variável de ambiente para Redis
+ENV REDIS_HOST=redis
 
-ENV FLASK_APP=app.py REDIS_HOST=redis
+# Expor porta da aplicação
+EXPOSE 5000
 
-CMD ["flask", "run", "-h", "127.0.0.1"]
+# Comando para correr a app
+CMD ["flask", "run", "-h", "0.0.0.0", "-p", "5000"]
